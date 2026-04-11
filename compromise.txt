@@ -1,0 +1,19 @@
+How can this framework be attacked?
+
+It can be attacked via a man-in-the-middle because it lacks identity verifications of 
+client/server. An attacker could insert their own public keys in the middle of the key 
+exchange and read/modify all messages sent.
+
+Replay attacks are also possible because an old message copied from the network could 
+be hashed and sent again. Another issue is lack of digital signatures, so we cannot 
+ensure responses are from who they say they are from. Finally, it is unencrypted traffic 
+running over raw TCP.
+
+How would you make the framework more secure?
+
+The framework could use some sort of authentication to verify client/server identities. 
+This would prevent a man-in-the-middle from getting involved in the conversation. 
+Timestamps or nonces could be added to prevent replay attacks.
+
+I would use TLS as the transport protocol because it already implements encryption. 
+Session management and key management would also help.
