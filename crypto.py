@@ -24,14 +24,17 @@ Design Choice:
     appropriate for this project.
 """
 def generate_keys():
-    # TODO:
+  
     # Generate a brand-new 2048-bit RSA keypair and return BOTH:
+    private_key = RSA.generate(2048)
     # 1. the private key object
     # 2. the matching public key object
-    #
-    # Hints:
+
     # - Use RSA.generate(2048)
     # - The public key is derived from the private key object
+    public_key = private_key.publickey()
+    return private_key, public_key
+    
     raise NotImplementedError("TODO: implement generate_keys")
 
 
@@ -102,7 +105,9 @@ Implementation Notes:
 def encrypt_message(message, public_key):
     # TODO:
     # Encrypt the plaintext message using the recipient's RSA public key.
-    #
+    cipher = PCKS1_OAEP.new(public_key)
+
+    return cipher.encrypt(message.encode())
     # What this function must do:
     # 1. Build an OAEP cipher object from the provided public key
     # 2. Convert the plaintext string into bytes using .encode()
@@ -168,4 +173,6 @@ def compute_sha256(message):
     # 1. Convert the plaintext string into bytes using .encode()
     # 2. Hash those bytes with hashlib.sha256(...)
     # 3. Return the printable hex digest with .hexdigest()
+    return hashlib.sha256(message.encode()).hexdigest()
+    
     raise NotImplementedError("TODO: implement compute_sha256")
