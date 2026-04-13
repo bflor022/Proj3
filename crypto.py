@@ -105,7 +105,7 @@ Implementation Notes:
 def encrypt_message(message, public_key):
     # TODO:
     # Encrypt the plaintext message using the recipient's RSA public key.
-    cipher = PCKS1_OAEP.new(public_key)
+    cipher = PKCS1_OAEP.new(public_key)
 
     return cipher.encrypt(message.encode())
     # What this function must do:
