@@ -26,17 +26,13 @@ Purpose:
     Receives exactly n bytes from socket.
 """
 def recv_exact(sock, n):
-    # TODO:
-    # Implement a blocking read loop that returns exactly n bytes.
-    #
-    # What this function must do:
-    # 1. Create an empty bytes buffer
-    # 2. Repeatedly call sock.recv(...) requesting only the remaining bytes
-    # 3. Append each chunk to the buffer
-    # 4. If recv() returns empty bytes before completion, raise:
-    #      ConnectionError("Socket connection closed unexpectedly")
-    # 5. Return the completed buffer once its length is n
-    raise NotImplementedError("TODO: implement recv_exact")
+    buffer = b""
+    while len(buffer) < n:
+        chunk = sock.recv(n - len(buffer))
+        if not chunk:
+            raise ConnectionError("Socket connection closed unexpectedly")
+        buffer += chunk
+    return buffer
 
 
 """
