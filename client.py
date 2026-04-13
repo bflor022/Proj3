@@ -17,22 +17,8 @@ Why Needed:
     Prevents mixing of commands and binary data.
 """
 def send_with_length(sock, data):
-    # TODO:
-    # Implement length-prefixed sending.
-    #
-    # What this function must do:
-    # 1. Compute the length of the byte payload in 'data'
-    # 2. Convert that integer length into exactly 4 bytes using big-endian format
-    # 3. Send the 4-byte header followed by the payload bytes
-    #
-    # Hints:
-    # - data is already bytes
-    # - use len(data).to_bytes(4, 'big')
-    # - use sock.sendall(...) so the full payload is sent
-    #
-    # Expected wire format:
-    # [4-byte length][payload bytes]
-    raise NotImplementedError("TODO: implement send_with_length")
+    length = len(data).to_bytes(4, 'big')
+    sock.sendall(length + data)
 
 
 """
@@ -42,19 +28,13 @@ Purpose:
     Receives exactly n bytes from the socket.
 """
 def recv_exact(sock, n):
-    # TODO:
-    # Implement a loop that keeps reading from the socket until exactly n bytes
-    # have been received.
-    #
-    # What this function must do:
-    # 1. Start with an empty bytes buffer
-    # 2. While the buffer length is less than n:
-    #    - call sock.recv(n - len(buffer))
-    #    - append the received bytes to the buffer
-    # 3. If recv() returns b'' before all bytes arrive, raise:
-    #      ConnectionError("Socket connection closed unexpectedly")
-    # 4. Return the completed buffer
-    raise NotImplementedError("TODO: implement recv_exact")
+    buffer = b""
+    while len(buffer) < n:
+        chunk = sock.recv(n - len(buffer))
+        if not chunk:
+            raise ConnectionError("Socket connection closed unexpectedly")
+        buffer += chunk
+    return buffer
 
 
 """
