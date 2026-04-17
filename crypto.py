@@ -2,6 +2,11 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import hashlib
 
+"""
+This file keeps all cryptographic logic in one place:
+key generation, key import/export, encryption, decryption, and hashing.
+Separating this from the socket code makes the client and server easier to read.
+"""
 
 """
 generate_keys()
@@ -24,7 +29,12 @@ Design Choice:
     appropriate for this project.
 """
 def generate_keys():
-  
+
+    """
+    Each side creates its own RSA keypair at startup.
+    The private key stays secret, while the public key is shared with the other side.
+    """
+    
     # Generate a brand-new 2048-bit RSA keypair and return BOTH:
     private_key = RSA.generate(2048)
     # 1. the private key object
@@ -173,6 +183,10 @@ def compute_sha256(message):
     # 1. Convert the plaintext string into bytes using .encode()
     # 2. Hash those bytes with hashlib.sha256(...)
     # 3. Return the printable hex digest with .hexdigest()
+    
+    # SHA-256 produces a fixed-length fingerprint of the message.
+    # Even a small change in the plaintext creates a very different hash.
+    
     return hashlib.sha256(message.encode()).hexdigest()
     
     raise NotImplementedError("TODO: implement compute_sha256")
