@@ -4,13 +4,25 @@ from crypto import *
 HOST = '127.0.0.1'
 PORT = 8080
 
+"""
+This server uses two TCP sockets:
+1. a control socket on the fixed port for the initial "connect" command
+2. a temporary data socket for the tunnel and post steps
+This matches the project requirement that the server first accepts a
+connection request, then responds with a different port for data exchange.
+"""
 
 """
 send_with_length(sock, data)
 
 Purpose:
     Sends a complete message using length prefix.
+
+TCP does not preserve message boundaries by itself.
+A 4-byte length prefix is added so the receiver knows exactly
+how many bytes belong to one command or encrypted payload.
 """
+
 def send_with_length(sock, data):
     # Convert payload length to a 4-byte header
     length = len(data).to_bytes(4, 'big')
@@ -88,6 +100,12 @@ def main():
 
     print("Awaiting connections...")
 
+    """
+    The first socket only handles the initial handshake.
+    The client must first send "connect" on this control connection
+    before the server creates the separate data socket.
+    """
+    
     # Accept control connection
     control_conn, _ = server.accept()
 
@@ -100,10 +118,20 @@ def main():
 
         print("Connection requested. Creating data socket")
 
+        """
+        A separate data socket is created after the connect command.
+        This socket is used for the tunnel and post phases of the project.
+        """
+        
         # Create data socket
         data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         data_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+        """
+        Port 0 tells the OS to automatically choose any free port.
+        The server then sends that chosen port number back to the client.
+        """
+        
         data_socket.bind((HOST, 0))
         data_socket.listen(1)
 
@@ -123,10 +151,22 @@ def main():
 
             print("Tunnel requested. Sending public key")
 
+            """
+            During the tunnel step, the client sends its public key first.
+            The server stores it so it can later encrypt the response hash
+            in a way that only that client can decrypt.
+            """
+            
             # Receive client public key
             client_pub_bytes = recv_with_length(data_conn)
             client_public_key = import_public_key(client_pub_bytes)
 
+            """
+            The server now sends its own public key to complete the tunnel setup.
+            After this exchange, both sides have the public key needed to send
+            encrypted data securely to the other side.
+            """
+            
             # Send server public key
             send_with_length(data_conn, public_key_bytes)
 
@@ -143,6 +183,11 @@ def main():
 
             print("Received encrypted message:", encrypted_msg)
 
+            """
+            The ciphertext was encrypted with the server's public key,
+            so only the server's private key can recover the original message.
+            """
+            
             # Decrypt message
             message = decrypt_message(encrypted_msg, private_key)
 
@@ -150,9 +195,20 @@ def main():
 
             print("Computing hash")
 
+            """
+            The server hashes the decrypted plaintext to create an integrity value.
+            If the client computes the same SHA-256 hash locally, the message was
+            received and processed correctly.
+            """
+            
             # Compute hash
             hash_val = compute_sha256(message)
 
+            """
+            The hash is encrypted with the client's public key before being returned.
+            That means only the client can decrypt the response with its private key.
+            """
+            
             # Encrypt hash with client public key
             encrypted_hash = encrypt_message(hash_val, client_public_key)
 
